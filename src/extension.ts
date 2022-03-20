@@ -1,64 +1,101 @@
 import { existsSync, readFileSync } from 'fs';
-import * as vscode from 'vscode';
+import {
+    Disposable, window, FileSystemWatcher, workspace, Uri,
+    ExtensionContext, StatusBarItem, StatusBarAlignment, RelativePattern
+} from 'vscode';
 
-let notificationStatusBar: vscode.StatusBarItem;
-let monitorPath: string = "";
-let monitorFile: string = "";
 
-export function activate(context: vscode.ExtensionContext) {
-    let settings = vscode.workspace.getConfiguration('shutdown-watcher');
-    monitorPath = settings.get("schedulePath", "/run/systemd/shutdown/");
-    monitorFile = settings.get("scheduleFile", "scheduled");
-    if (existsSync(monitorPath)) {
-        const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(monitorPath), `**/${monitorFile}`));
-        notificationStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-        watcher.onDidChange(uri => { shutdownUpdated(); });
-        watcher.onDidCreate(uri => { shutdownUpdated(); });
-        watcher.onDidDelete(uri => { shutdownCancelled(); });
-        context.subscriptions.push(notificationStatusBar);
-        shutdownUpdated();
+class StatusBarNotification implements Disposable {
+    private _watcher: FileSystemWatcher | undefined;
+    private _notificationStatusBar: StatusBarItem;
+    private _monitorPath: string = "";
+    private _monitorFile: string = "";
+
+    public constructor() {
+        this._notificationStatusBar = window.createStatusBarItem(StatusBarAlignment.Right, 100);
+        this.settingsUpdated(true);
     }
+
+    private _registerWatcherNotifications() {
+        this._watcher?.onDidChange(uri => { this._shutdownUpdated(); });
+        this._watcher?.onDidCreate(uri => { this._shutdownUpdated(); });
+        this._watcher?.onDidDelete(uri => { this._shutdownCancelled(); });
+    }
+
+    private _shutdownUpdated(statusBarOnly: Boolean = false) {
+        if (existsSync(`${this._monitorPath}${this._monitorFile}`)) {
+            let theTime: String = "";
+            let mode: String = "";
+            let schedule: String = readFileSync(`${this._monitorPath}${this._monitorFile}`).toString();
+            let lines: String[] = schedule.split("\n");
+            lines.forEach(line => {
+                if (line.toUpperCase().startsWith("USEC")) {
+                    let microSeconds: String = line.split("=")[1];
+                    var theDate: Date = new Date(parseInt(microSeconds.toString(), 10) / 1000);
+                    theTime = theDate.toISOString();
+                }
+                else if (line.toUpperCase().startsWith("MODE")) {
+                    mode = line.split("=")[1];
+                }
+            });
+            let message: String = "";
+            let statusBarMessage: String = "";
+            let settings = workspace.getConfiguration('shutdown-watcher');
+            let modalNotification: boolean = settings.get("modalNotification", true);
+            let popUpNotifications: boolean = settings.get("popUpNotifications", true);
+            let useStatusBar: boolean = settings.get("useStatusBar", true);
+            if (theTime !== "" && mode !== "") {
+                message = `${mode} scheduled for ${theTime}.\nUse shutdown -c to cancel.`;
+                statusBarMessage = `$(megaphone) ${mode} @ ${theTime}`;
+                if (popUpNotifications && !statusBarOnly) {
+                    window.showWarningMessage(`${message}`, { modal: modalNotification });
+                }
+            }
+            if (useStatusBar) {
+                this._notificationStatusBar.tooltip = `${message}`;
+                this._notificationStatusBar.text = `${statusBarMessage}`;
+                this._notificationStatusBar.show();
+            }
+        } else {
+            this._shutdownCancelled();
+        }
+    }
+
+    private _shutdownCancelled() {
+        this._notificationStatusBar.hide();
+    }
+
+    settingsUpdated(init: Boolean = false) {
+        const settings = workspace.getConfiguration('shutdown-watcher');
+        this._monitorPath = settings.get("schedulePath", "/run/systemd/shutdown/");
+        this._monitorFile = settings.get("scheduleFile", "scheduled");
+        if (this._watcher) {
+            this._watcher.dispose();
+        }
+        this._watcher = workspace.createFileSystemWatcher(new RelativePattern(Uri.file(this._monitorPath), `**/${this._monitorFile}`));
+        this._registerWatcherNotifications();
+        if (!init) {
+            if (!settings.get("useStatusBar", true)) {
+                this._notificationStatusBar.hide();
+            }
+        }
+        this._shutdownUpdated(!init);
+    }
+
+    dispose() {
+        this._watcher?.dispose();
+        this._notificationStatusBar.hide();
+        this._notificationStatusBar.dispose();
+    }
+}
+
+export function activate(context: ExtensionContext) {
+    const statusBar: StatusBarNotification = new StatusBarNotification();
+    context.subscriptions.push(statusBar);
+    // Register actions on configuration change
+    context.subscriptions.push(workspace.onDidChangeConfiguration(() => {
+        statusBar.settingsUpdated();
+    }));
 }
 
 export function deactivate() { }
-
-function shutdownUpdated() {
-    let theTime: String = "";
-    let mode: String = "";
-    let schedule: String = readFileSync(`${monitorPath}${monitorFile}`).toString();
-    let lines: String[] = schedule.split("\n");
-    lines.forEach(line => {
-        if (line.toUpperCase().startsWith("USEC")) {
-            let ms: String = line.split("=")[1];
-            var d: Date = new Date(parseInt(ms.toString(), 10) / 1000);
-            theTime = d.toISOString();
-        }
-        else if (line.toUpperCase().startsWith("MODE")) {
-            mode = line.split("=")[1];
-        }
-    });
-    let message: String = "";
-    let statusBarMessage: String = "";
-    if (theTime !== "" && mode !== "") {
-        message = `${mode} scheduled for ${theTime}.\nUse shutdown -c to cancel.`;
-        statusBarMessage = `$(megaphone) ${mode} @ ${theTime}`;
-        vscode.window.showWarningMessage(`${message}`, {modal : true});
-    }
-    notificationStatusBar.tooltip = `${message}`;
-    notificationStatusBar.text = `${statusBarMessage}`;
-    notificationStatusBar.show();
-}
-
-function shutdownCancelled() {
-    notificationStatusBar.hide();
-}
-
-// /run/systemd/shutdown/scheduled
-
-// $ date -d "@$( awk -F '=' '/USEC/{ $2=substr($2,1,10); print $2 }' /run/systemd/shutdown/scheduled )"
-// Thu Jul 25 02:00:00 NZST 2019
-
-
-// USEC=1563976800000000
-// WARN_WALL=1
-// MODE=reboot

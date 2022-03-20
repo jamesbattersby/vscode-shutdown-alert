@@ -6,10 +6,10 @@ let monitorPath: string = "";
 let monitorFile: string = "";
 
 export function activate(context: vscode.ExtensionContext) {
+    let settings = vscode.workspace.getConfiguration('shutdown-watcher');
+    monitorPath = settings.get("schedulePath", "/run/systemd/shutdown/");
+    monitorFile = settings.get("scheduleFile", "scheduled");
     if (existsSync(monitorPath)) {
-        let settings = vscode.workspace.getConfiguration('shutdown-watcher');
-        monitorPath = settings.get("schedulePath", "/run/systemd/shutdown/");
-        monitorFile = settings.get("scheduleFile", "scheduled");
         const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(monitorPath), `**/${monitorFile}`));
         notificationStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
         watcher.onDidChange(uri => { shutdownUpdated(); });

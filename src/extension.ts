@@ -1,11 +1,15 @@
 import { readFileSync } from 'fs';
 import * as vscode from 'vscode';
-export function activate(context: vscode.ExtensionContext) {
+let myStatusBarItem: vscode.StatusBarItem;
 
+export function activate(context: vscode.ExtensionContext) {
     const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file("/home/james/test/"), '**/scheduled'));
+    myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     watcher.onDidChange(uri => { shutdownUpdated(); });
     watcher.onDidCreate(uri => { shutdownUpdated(); });
-    watcher.onDidDelete(uri => { vscode.window.showWarningMessage("Shutdown Cancelled"); });
+    watcher.onDidDelete(uri => { shutdownCancelled(); });
+    context.subscriptions.push(myStatusBarItem);
+    shutdownUpdated();
 }
 
 export function deactivate() { }
@@ -19,15 +23,26 @@ function shutdownUpdated() {
         if (line.toUpperCase().startsWith("USEC")) {
             let ms: String = line.split("=")[1];
             var d: Date = new Date(parseInt(ms.toString(), 10) / 1000);
-            theTime = d.toString();
+            theTime = d.toISOString();
         }
         else if (line.toUpperCase().startsWith("MODE")) {
             mode = line.split("=")[1];
         }
     });
+    let message: String = "";
+    let statusBarMessage: String = "";
     if (theTime !== "" && mode !== "") {
-        vscode.window.showWarningMessage(`${mode} scheduled for ${theTime}.\nUse shutdown -c to cancel.`);
+        message = `${mode} scheduled for ${theTime}.\nUse shutdown -c to cancel.`;
+        statusBarMessage = `$(megaphone) ${mode} @ ${theTime}`;
+        vscode.window.showWarningMessage(`${message}`);
     }
+    myStatusBarItem.tooltip = `${message}`;
+    myStatusBarItem.text = `${statusBarMessage}`;
+    myStatusBarItem.show();
+}
+
+function shutdownCancelled() {
+    myStatusBarItem.hide();
 }
 
 // /run/systemd/shutdown/scheduled

@@ -1,6 +1,6 @@
 {
-  "name": "shutdown-watcher",
-	"displayName": "shutdown-watcher",
+	"name": "shutdown-watcher",
+	"displayName": "Shutdown Watcher",
 	"description": "Watches for shutdown events",
 	"version": "0.0.0",
 	"engines": {
@@ -10,7 +10,7 @@
 		"Other"
 	],
 	"activationEvents": [
-        "*"
+		"*"
 	],
 	"license": "MIT",
 	"publisher": "JamesBattersby",
@@ -24,10 +24,34 @@
 	"bugs": {
 		"url": "https://github.com/jamesbattersby/vscode-shutdown-watcher/issues"
 	},
-	"homepage": "https://github.com/jamesbattersby/vscode-shutdown-watcher/blob/master/README.md",
+	"homepage": "https://github.com/jamesbattersby/vscode-shutdown-watcher/blob/main/README.md",
 	"main": "./dist/extension.js",
 	"contributes": {
+		"configuration": [
+			{
+				"title": "Shutdown Watcher",
+				"properties": {
+					"shutdown-watcher.schedulePath": {
+						"type": "string",
+						"default": "/run/systemd/shutdown/",
+						"description": "The path where the shutdown/reboot schedule file is."
+					},
+					"shutdown-watcher.scheduleFile": {
+						"type": "string",
+						"default": "scheduled",
+						"description": "The filename of the shutdown/reboot file"
+					}
+				}
+			}
+		]
 	},
+	"keywords": [
+		"shutdown",
+		"reboot",
+		"systemd",
+		"shutdown notifications",
+		"reboot notifications"
+	],
 	"scripts": {
 		"vscode:prepublish": "npm run package",
 		"compile": "webpack",

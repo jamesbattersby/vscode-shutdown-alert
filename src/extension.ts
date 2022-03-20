@@ -1,15 +1,23 @@
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import * as vscode from 'vscode';
-let myStatusBarItem: vscode.StatusBarItem;
+
+let notificationStatusBar: vscode.StatusBarItem;
+let monitorPath: string = "";
+let monitorFile: string = "";
 
 export function activate(context: vscode.ExtensionContext) {
-    const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file("/home/james/test/"), '**/scheduled'));
-    myStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    watcher.onDidChange(uri => { shutdownUpdated(); });
-    watcher.onDidCreate(uri => { shutdownUpdated(); });
-    watcher.onDidDelete(uri => { shutdownCancelled(); });
-    context.subscriptions.push(myStatusBarItem);
-    shutdownUpdated();
+    if (existsSync(monitorPath)) {
+        let settings = vscode.workspace.getConfiguration('shutdown-watcher');
+        monitorPath = settings.get("schedulePath", "/run/systemd/shutdown/");
+        monitorFile = settings.get("scheduleFile", "scheduled");
+        const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(monitorPath), `**/${monitorFile}`));
+        notificationStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+        watcher.onDidChange(uri => { shutdownUpdated(); });
+        watcher.onDidCreate(uri => { shutdownUpdated(); });
+        watcher.onDidDelete(uri => { shutdownCancelled(); });
+        context.subscriptions.push(notificationStatusBar);
+        shutdownUpdated();
+    }
 }
 
 export function deactivate() { }
@@ -17,7 +25,7 @@ export function deactivate() { }
 function shutdownUpdated() {
     let theTime: String = "";
     let mode: String = "";
-    let schedule: String = readFileSync("/home/james/test/scheduled").toString();
+    let schedule: String = readFileSync(`${monitorPath}${monitorFile}`).toString();
     let lines: String[] = schedule.split("\n");
     lines.forEach(line => {
         if (line.toUpperCase().startsWith("USEC")) {
@@ -34,15 +42,15 @@ function shutdownUpdated() {
     if (theTime !== "" && mode !== "") {
         message = `${mode} scheduled for ${theTime}.\nUse shutdown -c to cancel.`;
         statusBarMessage = `$(megaphone) ${mode} @ ${theTime}`;
-        vscode.window.showWarningMessage(`${message}`);
+        vscode.window.showWarningMessage(`${message}`, {modal : true});
     }
-    myStatusBarItem.tooltip = `${message}`;
-    myStatusBarItem.text = `${statusBarMessage}`;
-    myStatusBarItem.show();
+    notificationStatusBar.tooltip = `${message}`;
+    notificationStatusBar.text = `${statusBarMessage}`;
+    notificationStatusBar.show();
 }
 
 function shutdownCancelled() {
-    myStatusBarItem.hide();
+    notificationStatusBar.hide();
 }
 
 // /run/systemd/shutdown/scheduled

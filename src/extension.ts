@@ -40,7 +40,7 @@ class StatusBarNotification implements Disposable {
             });
             let message: String = "";
             let statusBarMessage: String = "";
-            let settings = workspace.getConfiguration('shutdown-watcher');
+            let settings = workspace.getConfiguration('shutdown-alert');
             let modalNotification: boolean = settings.get("modalNotification", true);
             let popUpNotifications: boolean = settings.get("popUpNotifications", true);
             let useStatusBar: boolean = settings.get("useStatusBar", true);
@@ -66,7 +66,7 @@ class StatusBarNotification implements Disposable {
     }
 
     settingsUpdated(init: Boolean = false) {
-        const settings = workspace.getConfiguration('shutdown-watcher');
+        const settings = workspace.getConfiguration('shutdown-alert');
         this._monitorPath = settings.get("schedulePath", "/run/systemd/shutdown/");
         this._monitorFile = settings.get("scheduleFile", "scheduled");
         if (this._watcher) {

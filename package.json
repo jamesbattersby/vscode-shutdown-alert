@@ -1,7 +1,7 @@
 {
-    "name": "shutdown-watcher",
-    "displayName": "Shutdown Watcher",
-    "description": "Watches for shutdown events",
+    "name": "shutdown-alert",
+    "displayName": "Shutdown Alerter",
+    "description": "Alerts about shutdown and restart events",
     "version": "0.0.0",
     "engines": {
         "vscode": "^1.65.0"
@@ -19,39 +19,39 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/jamesbattersby/vscode-shutdown-watcher.git"
+        "url": "https://github.com/jamesbattersby/vscode-shutdown-alert.git"
     },
     "bugs": {
-        "url": "https://github.com/jamesbattersby/vscode-shutdown-watcher/issues"
+        "url": "https://github.com/jamesbattersby/vscode-shutdown-alert/issues"
     },
-    "homepage": "https://github.com/jamesbattersby/vscode-shutdown-watcher/blob/main/README.md",
+    "homepage": "https://github.com/jamesbattersby/vscode-shutdown-alert/blob/main/README.md",
     "main": "./dist/extension.js",
     "contributes": {
         "configuration": [
             {
                 "title": "Shutdown Watcher",
                 "properties": {
-                    "shutdown-watcher.schedulePath": {
+                    "shutdown-alert.schedulePath": {
                         "type": "string",
                         "default": "/run/systemd/shutdown/",
                         "description": "The path where the shutdown/reboot schedule file is."
                     },
-                    "shutdown-watcher.scheduleFile": {
+                    "shutdown-alert.scheduleFile": {
                         "type": "string",
                         "default": "scheduled",
                         "description": "The filename of the shutdown/reboot file"
                     },
-                    "shutdown-watcher.modalNotification": {
+                    "shutdown-alert.modalNotification": {
                         "type": "boolean",
                         "default": true,
                         "description": "Use a modal dialog for notifications"
                     },
-                    "shutdown-watcher.popUpNotifications": {
+                    "shutdown-alert.popUpNotifications": {
                         "type": "boolean",
                         "default": true,
                         "description": "Display a popup notification"
                     },
-                    "shutdown-watcher.useStatusBar": {
+                    "shutdown-alert.useStatusBar": {
                         "type": "boolean",
                         "default": true,
                         "description": "Display a notice in the statusbar"

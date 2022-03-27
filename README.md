@@ -1,9 +1,12 @@
 # Shutdown Alerter
-
 `Shutdown Alerter` is a little extension for VSCode that monitors `/run/systemd/shutdown/scheduled` looking for scheduled shutdown and
 reboot event.
 
 If an event is found, a notification dialog is displayed, along with a status bar notification message giving the type of event and the scheduled time.
+
+# Motivation
+When ssh'd in to a Linux machine, if a shutdown or reboot event is triggered there is a broadcast notification is shown on the ssh terminal.  However,
+if connected via VSCode the notification isn't shown.  This extension monitors the shutdown schedule file and provides a notification.
 
 # File Format
 The expected format of the notification file is:

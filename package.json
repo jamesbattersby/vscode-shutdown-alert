@@ -6,6 +6,8 @@
     "engines": {
         "vscode": "^1.65.0"
     },
+    "icon": "media/megaphone.png",
+    "preview": true,
     "categories": [
         "Other"
     ],

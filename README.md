@@ -25,3 +25,5 @@ Anything other than this is not supported.
 | popUpNotifications    | Use pop up notifications                        | `true`                   |
 | useStatusBar          | Show notifications in the status bar            | `true`                   |
 
+# Icons
+Man with megaphone: https://pixabay.com/vectors/loudspeaker-man-boy-holding-1459128/

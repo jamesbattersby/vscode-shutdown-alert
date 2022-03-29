@@ -18,6 +18,12 @@ MODE=reboot
 ```
 Anything other than this is not supported.
 
+### Example modal
+![Example Modal](https://raw.githubusercontent.com/jamesbattersby/vscode-shutdown-alert/main/images/shutdown-modal.png)
+
+### Example notification
+![Example Notification](https://raw.githubusercontent.com/jamesbattersby/vscode-shutdown-alert/main/images/shutdown-notification.png)
+
 # Settings
 
 | Setting               | Description                                     | Default                  |

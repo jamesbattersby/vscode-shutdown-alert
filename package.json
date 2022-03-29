@@ -2,7 +2,7 @@
     "name": "shutdown-alert",
     "displayName": "Shutdown Alerter",
     "description": "Alerts about shutdown and restart events",
-    "version": "0.0.2",
+    "version": "0.0.3-alpha",
     "engines": {
         "vscode": "^1.65.0"
     },

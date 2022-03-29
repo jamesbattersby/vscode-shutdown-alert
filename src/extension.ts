@@ -72,6 +72,9 @@ class StatusBarNotification implements Disposable {
         if (this._watcher) {
             this._watcher.dispose();
         }
+        if (!this._monitorPath.endsWith("/")) {
+            this._monitorPath += "/";
+        }
         this._watcher = workspace.createFileSystemWatcher(new RelativePattern(Uri.file(this._monitorPath), `**/${this._monitorFile}`));
         this._registerWatcherNotifications();
         if (!init) {

@@ -1,6 +1,6 @@
 # Shutdown Alerter
 `Shutdown Alerter` is a little extension for VSCode that monitors `/run/systemd/shutdown/scheduled` looking for scheduled shutdown and
-reboot event.
+reboot events.
 
 If an event is found, a notification dialog is displayed, along with a status bar notification message giving the type of event and the scheduled time.
 

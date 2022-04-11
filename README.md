@@ -1,3 +1,7 @@
+<p align=center>
+<a href="https://circleci.com/gh/jamesbattersby/vscode-shutdown-alert"><img src="https://circleci.com/gh/jamesbattersby/vscode-shutdown-alert.svg?style=shield"></a>
+</p>
+
 # Shutdown Alerter
 `Shutdown Alerter` is a little extension for VSCode that monitors `/run/systemd/shutdown/scheduled` looking for scheduled shutdown and
 reboot events.
